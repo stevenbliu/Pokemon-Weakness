@@ -33,49 +33,63 @@ effectiveness = {'Normal': [1, 2, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 
 df = pd.DataFrame(columns=all_types, data=effectiveness, index=all_types)
 
-types = []
+# pokemon = 'CHARIZARD'
 
-print('Enter the name of the Pokemon')
-pokemon = input()
+def getWeaknesses(pokemon):
 
-#pokemon = 'CHARIZARD'
+    def getPokemonType(pokemon):
 
-url = "https://www.serebii.net/pokedex-swsh/" + pokemon.lower() + '/'
+        types = []
 
-resp = requests.get(url)
+        url = "https://www.serebii.net/pokedex-swsh/" + pokemon.lower() + '/'
 
-if resp.ok == False:
-    print('Fail')
+        resp = requests.get(url)
 
-soup = BeautifulSoup(resp.text, features='lxml')
-td = soup.find('td', {"class": "cen"}).find_all('img')
-for type in td:
-    types.append(type['alt'].replace('-type', ''))
+        if not resp.ok:
+            print(pokemon + ' not found.')
+            return 0
 
-# Possible damage multipliers
-most, very, little, least, no = 4, 2, .5, .25, 0
-multipliers = [most, very, little, least, no]
+        soup = BeautifulSoup(resp.text, features='lxml')
+        td = soup.find('td', {"class": "cen"}).find_all('img')
+        for type in td:
+            types.append(type['alt'].replace('-type', ''))
 
-def weakness(list):
-    rates = []
-    for type in list:
-        rates.append(df[type])
-    return rates
+        return types
 
-data = weakness(types)
+    def weakness(types):
+        rates = []
+        for type in types:
+            rates.append(df[type])
+        return rates
 
-# Dual types
-effective = 1
-for type in data:
-    effective *= type
+        # Possible damage multipliers
 
-x = effective[effective != 1].sort_values(ascending=False)
+    most, very, little, least, no = 4, 2, .5, .25, 0
+    multipliers = [most, very, little, least, no]
+    types = getPokemonType(pokemon)
+    if types == 0:
+        return
+    data = weakness(types)
 
-print('Multiplier: Type')
-print('-------------')
-for multiplier in multipliers:
-    fin = str(multiplier) + 'x: ' + ' '.join(list(x[x == multiplier].index))
-    print(fin)
+    # Dual types
+    effective = 1
+    for type in data:
+        effective *= type
 
+    x = effective[effective != 1].sort_values(ascending=False)
+
+    print(pokemon + ' is a', types)
+    print('Multiplier: Types')
+    print('-------------')
+    for multiplier in multipliers:
+        fin = str(multiplier) + 'x: ' + ' '.join(list(x[x == multiplier].index))
+        print(fin)
+
+x = 1
+while(x==1):
+    print('Enter the name of the Pokemon')
+    pokemon = input()
+    getWeaknesses(pokemon)
+    print('----------')
 
 
